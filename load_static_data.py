@@ -3,7 +3,7 @@ from pymongo import Connection
 
 endpoint_city = 'baltimore' # TODO: replace this with command line arg
 connection = Connection(os.environ['MONGO_URI'])
-db = connection.chicago
+db = connection[os.environ['MONGO_COLLECTION']]
 
 print "destroy previous static tables"
 db.drop_collection('services')
