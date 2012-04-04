@@ -21,3 +21,8 @@ for neighborhood in db.baltimore_neighborhoods.find():
         print "couldn't do geospatial search " \
             "for polygon lookup for {0}".format(neighborhood['name'])
         print "reason: {0}".format(of)
+    except Exception as e:
+        print "couldn't do geospatial search " \
+            "for polygon lookup for {0}".format(neighborhood['name'])
+        print "reason: {0}".format(e)
+
