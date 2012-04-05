@@ -80,7 +80,7 @@ def sum_open_requests_by_date():
     db.requests_open_by_date.remove() 
     sorted_h = sorted(date_hash)
     for v in sorted_h:
-        db.requests_open_by_date.insert( {v.strftime('%Y-%m-%d'): date_hash[v]} )
+        db.requests_open_by_date.insert( { "date": v.strftime('%Y-%m-%d'), "count": date_hash[v]} )
     
 if __name__ == '__main__':
     endpoint_city = 'baltimore' # TODO: replace this with command line arg
