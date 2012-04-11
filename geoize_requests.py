@@ -10,9 +10,13 @@ db = connection[os.environ['MONGO_COLLECTION']]
 print "updating requests with geo data for {0}".format(endpoint_city)
 
 for neighborhood in db.baltimore_neighborhoods.find():
-    neighborhood_name = neighborhood['properties']['Name']
-    print "doing updates for {0}".format(neighborhood_name) 
-    coordinates = neighborhood['geometry']['coordinates']
+    try:
+        neighborhood_name = neighborhood['properties']['Name']
+        print "doing updates for {0}".format(neighborhood_name) 
+        coordinates = neighborhood['geometry']['coordinates']
+    except KeyError as ke:
+        print "could not process shape {0}".format(neighborhood)
+        continue
     try:
         docs = db.requests.find({"loc": {"$within": {"$polygon": coordinates[0]}}})
         for doc in docs:
