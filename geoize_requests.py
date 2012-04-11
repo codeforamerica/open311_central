@@ -10,19 +10,20 @@ db = connection[os.environ['MONGO_COLLECTION']]
 print "updating requests with geo data for {0}".format(endpoint_city)
 
 for neighborhood in db.baltimore_neighborhoods.find():
-    print "doing updates for {0}".format(neighborhood['name']) 
+    neighborhood_name = neighborhood['properties']['Name']
+    print "doing updates for {0}".format(neighborhood_name) 
     coordinates = neighborhood['geometry']['coordinates']
     try:
         docs = db.requests.find({"loc": {"$within": {"$polygon": coordinates[0]}}})
         for doc in docs:
-            doc['neighborhood'] = neighborhood['name']
+            doc['neighborhood'] = neighborhood_name 
             db.requests.save(doc)
     except OperationFailure as of:
         print "couldn't do geospatial search " \
-            "for polygon lookup for {0}".format(neighborhood['name'])
+            "for polygon lookup for {0}".format(neighborhood_name)
         print "reason: {0}".format(of)
     except Exception as e:
         print "couldn't do geospatial search " \
-            "for polygon lookup for {0}".format(neighborhood['name'])
+            "for polygon lookup for {0}".format(neighborhood_name)
         print "reason: {0}".format(e)
 

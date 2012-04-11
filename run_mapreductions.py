@@ -36,25 +36,17 @@ def sum_requests_by_neighborhood():
         query={'status':'closed'})
     print "summed closed requests by neighborhood"
 
-def sum_requests_by_date():
-    map = Code("function() {"
-               "  emit({date: this.date, status: this.status}, {count: 1});"
-               "}")
-    reduce = Code("function(k, values) {"
-                  "  var result = {count: 0};"
-                  "  values.forEach(function(value) {"
-                  "      result.count += value.count"
-                  "  });"
-                  "  return result;"
-                  "}")
-    db.requests.map_reduce(map, reduce, "request_date_status_sum")
-    print "summed requests by date, status"
-
-def _upsert_date_and_increment_open_count(date_hash, date):
+def _upsert_date_and_increment_open_count(date_hash, service_name, date):
     if date not in date_hash:
-        date_hash[date] = {"open": 1} 
+        type_hash = {service_name: {"open": 1}}
+        date_hash[date] = {"open": 1, "types": type_hash} 
         return
     date_hash[date]["open"] += 1 
+    type_hash = date_hash[date]['types']
+    if service_name not in type_hash:
+        type_hash[service_name] = {"open": 1}
+        return
+    type_hash[service_name]["open"] += 1
 
 def sum_open_requests_by_date():
     date_hash = {}
@@ -65,7 +57,7 @@ def sum_open_requests_by_date():
         created_at = iso8601.parse_date(document['requested_datetime']).date()
         delta = date.today() - created_at
         for i in range(0, delta.days+1):
-            _upsert_date_and_increment_open_count(date_hash, \
+            _upsert_date_and_increment_open_count(date_hash, document['service_name'], \
                 created_at + timedelta(i))
     closed_requests = \
         db.requests.find({"status": "closed"})
@@ -74,13 +66,16 @@ def sum_open_requests_by_date():
         updated_at = iso8601.parse_date(document['updated_datetime']).date()
         delta = updated_at - created_at
         for i in range(0, delta.days):
-            _upsert_date_and_increment_open_count(date_hash, \
+            _upsert_date_and_increment_open_count(date_hash, document['service_name'], \
                 created_at + timedelta(i))
     print "saving open requests by date" 
     db.requests_open_by_date.remove() 
     sorted_h = sorted(date_hash)
+    print "sorted_h = {0}".format(sorted_h)
     for v in sorted_h:
-        db.requests_open_by_date.insert( { "date": v.strftime('%Y-%m-%d'), "count": date_hash[v]} )
+        print v
+        db.requests_open_by_date.insert( { "date": v.strftime('%Y-%m-%d'), "counts": date_hash[v]} )
+    db.requests_open_by_date.ensure_index([("date", pymongo.ASCENDING)], unique=False)
     
 if __name__ == '__main__':
     endpoint_city = 'baltimore' # TODO: replace this with command line arg
@@ -89,5 +84,4 @@ if __name__ == '__main__':
     
     sum_requests_by_status()
     sum_requests_by_neighborhood()
-    #sum_requests_by_date()
     sum_open_requests_by_date()
