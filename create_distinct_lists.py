@@ -6,7 +6,9 @@ from datetime import datetime, timedelta, date
 
 def create_distinct_lists_of_boundaries_and_request_types_for_endpoints():
     boundaries = db.requests.find({"endpoint": endpoint}).distinct('boundary');
-    db.distinct.save({"_id": endpoint, "boundaries": boundaries})
+    request_types = db.requests.find({"endpoint": endpoint}).distinct('service_name');
+    db.distinct.save({"_id": endpoint, "service_names": request_types,
+        "boundaries": boundaries})
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Create table of distinct lists ' +
