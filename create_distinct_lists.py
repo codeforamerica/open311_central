@@ -26,6 +26,8 @@ def create_distinct_lists_of_boundaries_and_request_types_for_endpoints():
     for name in service_names:
         result = db.services.find_one({"endpoint": endpoint, "service_name": name},
                                       fields={"service_code": 1})
+        if None == result:
+            continue
         service_info.append({"service_name": name, 
                              "service_code": result["service_code"]})
 
