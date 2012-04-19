@@ -1,5 +1,6 @@
 import os, sys, three, pymongo, argparse
 from pymongo import Connection
+from log_manager import LogManager
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Download Open311 service data ' +
@@ -10,17 +11,17 @@ if __name__ == '__main__':
     endpoint = args.endpoint
     connection = Connection(os.environ['MONGO_URI'])
     db = connection[os.environ['MONGO_DATABASE']]
+    lm = LogManager()
+    logger = lm.logger
 
-    print "downloading static data from {0}...".format(endpoint)
+    logger.info("downloading static data from {0}...".format(endpoint))
     city = three.city(endpoint)
     services = city.services()
-    print "download complete"
+    logger.info("download of static data complete for {0}".format(endpoint))
 
-    print "inserting downloaded data into db:"
     for service in services:
-        sys.stdout.write('.')
-        sys.stdout.flush()
         service['_id'] = service['service_code']
         service['endpoint'] = endpoint
         db.services.save(service)
-    print "\ndatabase insert complete"
+
+    logger.info("saved static data for {0}".format(endpoint))
