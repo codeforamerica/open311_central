@@ -3,10 +3,12 @@ from bson.code import Code
 from pymongo import Connection
 from optparse import OptionParser
 from datetime import datetime, timedelta, date
+from log_manager import LogManager
 
 def create_distinct_lists_of_boundaries_and_request_types_for_endpoints():
     boundaries = [] 
     boundaryNames = db.requests.find({"endpoint": endpoint}).distinct('boundary')
+    logger.info('{0} boundary names for {1}'.format(boundaryNames.count(False), endpoint))
     for boundaryName in boundaryNames:
         boundary = db.boundaries.find_one({"properties.Name": boundaryName})
         lats = []
@@ -18,7 +20,7 @@ def create_distinct_lists_of_boundaries_and_request_types_for_endpoints():
         bbox = [min(lats), min(lons), max(lats), max(lons)]
         record = {"name": boundaryName, "boundary": bbox}
         boundaries.append(record)
-        print record
+        logger.info('creating distinct boundary for: {0}'.format(record))
     
     # service name/codes 
     service_info = []
@@ -42,7 +44,8 @@ if __name__ == '__main__':
     endpoint = args.endpoint
     connection = Connection(os.environ['MONGO_URI'])
     db = connection[os.environ['MONGO_DATABASE']]
+    lm = LogManager()
+    logger = lm.logger
 
-    print 'creating distinct list of boundaries for {0}'.format(endpoint)
+    logger.info('creating distinct list of boundaries for {0}'.format(endpoint))
     create_distinct_lists_of_boundaries_and_request_types_for_endpoints()
-    print 'done'
