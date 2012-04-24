@@ -1,7 +1,14 @@
+Flask==0.8
+Jinja2==2.6
+Werkzeug==0.8.3
 certifi==0.0.8
 chardet==1.0.1
+gevent==0.13.7
+greenlet==0.3.4
+gunicorn==0.14.2
 iso8601==0.1.4
 log4mongo==1.1b1
+mock==1.0.0alpha1
 pymongo==2.1.1
 pytz==2012b
 relaxml==0.1.2
