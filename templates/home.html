@@ -14,9 +14,11 @@
   </div>
   <div class="row-fluid">
     {% for doc in docs %}
-    <div class="pull-left">
+    <div class="row">
       <h3>{{doc['_id']}}</h3>
-      <div class="well span3">
+    </div>
+    <div class="row">
+      <div class="well span10">
        <h4>
        <div class="row">
          RUNNING: {{ doc['running_count'] }} - 
