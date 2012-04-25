@@ -6,8 +6,9 @@ Werkzeug Documentation:  http://werkzeug.pocoo.org/documentation/
 This file creates your application.
 """
 
-import os
-from flask import Flask, render_template, request, redirect, url_for
+import os, json
+from flask import Flask, render_template, request, redirect, url_for, Markup
+from pymongo import Connection
 
 app = Flask(__name__)
 
@@ -16,7 +17,6 @@ if 'SECRET_KEY' in os.environ:
 else:
     app.config['SECRET_KEY'] = 'this_should_be_configured'
 
-
 ###
 # Routing for your application.
 ###
@@ -24,14 +24,17 @@ else:
 @app.route('/')
 def home():
     """Render website's home page."""
-    return render_template('home.html')
+    connection = Connection(os.environ['MONGO_URI'])
+    db = connection[os.environ['MONGO_DATABASE']]
+    docs = []
+    for doc in db.scriptstats.find():
+        docs.append(doc)
+    return render_template('home.html', docs=docs, stats=Markup(json.dumps(docs)))
 
-
-@app.route('/about/')
-def about():
+@app.route('/logs/')
+def logs():
     """Render the website's about page."""
-    return render_template('about.html')
-
+    return redirect(url_for('home'))
 
 ###
 # The functions below should be applicable to all Flask apps.
@@ -43,7 +46,6 @@ def send_text_file(file_name):
     file_dot_text = file_name + '.txt'
     return app.send_static_file(file_dot_text)
 
-
 @app.after_request
 def add_header(response):
     """
@@ -53,12 +55,10 @@ def add_header(response):
     response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'
     return response
 
-
 @app.errorhandler(404)
 def page_not_found(error):
     """Custom 404 page."""
     return render_template('404.html'), 404
-
 
 if __name__ == '__main__':
     app.run(debug=True)

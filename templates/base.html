@@ -18,7 +18,20 @@
   <link rel="stylesheet" href="/static/css/bootstrap.css">
   <link rel="stylesheet" href="/static/css/bootstrap-responsive.css">
   <link rel="stylesheet/less" href="/static/css/main.less">
-  {% block css %}{% endblock %}
+  {% block css %}
+    <style type="text/css">
+     #main {
+       width: 100%;
+       margin-top: 3%;
+     } 
+     .well {
+       padding-left: 50px;
+     }
+     .row {
+       margin-bottom: 10px;
+     }
+    </style>
+  {% endblock %}
 
   <!-- Rather use `less.js` to dynamically compile your `stylesheet/less` files? -->
   <script src="http://cdnjs.cloudflare.com/ajax/libs/less.js/1.1.5/less-1.1.5.min.js"></script>

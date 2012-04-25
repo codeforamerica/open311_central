@@ -51,17 +51,14 @@ def mark_requests_with_boundaries():
 def increment_running_count_in_stats():
     script_stats = db.scriptstats.find_one({'_id': endpoint}) or {}
     script_stats['_id'] = endpoint
-    if 'running_count' in script_stats:
-        script_stats['running_count'] = script_stats['running_count'] + 1 
-    else:
-        script_stats['running_count'] = 1
+    script_stats['running_count'] = 1
     script_stats['last_started_at'] = datetime.now().strftime('%A, %d. %B %Y %H:%M:%S')
     logger.debug(script_stats)
     db.scriptstats.save(script_stats)
     return script_stats
 
 def update_stats(script_stats):
-    script_stats['running_count'] = script_stats['running_count'] - 1
+    script_stats['running_count'] = 0
     script_stats['processed_requests'] = processed_requests 
     script_stats['last_completed_at'] = datetime.now().strftime('%A, %d. %B %Y %H:%M:%S')
     db.scriptstats.save(script_stats)
