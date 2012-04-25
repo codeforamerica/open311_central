@@ -3,6 +3,7 @@ from pymongo import Connection, GEO2D
 from pymongo.errors import OperationFailure
 from log_manager import LogManager
 from datetime import datetime
+from time import sleep
 
 def download_requests():
     requests_remain = True
@@ -66,29 +67,21 @@ def update_stats(script_stats):
     db.scriptstats.save(script_stats)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Download Open311 data from endpoint ' +
-        'and store in MongoDB')
-    parser.add_argument('endpoint', action='store', 
-                        help='three city name')
-    args = parser.parse_args()
-    endpoint = args.endpoint
-    connection = Connection(os.environ['MONGO_URI'])
-    db = connection[os.environ['MONGO_DATABASE']]
+    endpoints = ['baltimore', 'boston']
     lm = LogManager()
     logger = lm.logger
-    processed_requests = 0
-
-    # increment running count for this script, endpoint   
-    script_stats = increment_running_count_in_stats()
-
-    logger.info('downloading requests from {0}...'.format(endpoint))
-    city = three.city(endpoint)
-    download_requests()
-
-    logger.info('setting geospatial index on loc field')
-    db.requests.ensure_index([("loc", GEO2D)])
-
-    mark_requests_with_boundaries() 
-    
-    update_stats(script_stats)
-
+    connection = Connection(os.environ['MONGO_URI'])
+    db = connection[os.environ['MONGO_DATABASE']]
+    while(True):
+        for endpoint in endpoints:
+            processed_requests = 0
+            script_stats = increment_running_count_in_stats()
+            logger.info('downloading requests from {0}...'.format(endpoint))
+            city = three.city(endpoint)
+            download_requests()
+            logger.info('setting geospatial index on loc field')
+            db.requests.ensure_index([("loc", GEO2D)])
+            mark_requests_with_boundaries() 
+            update_stats(script_stats)
+        logger.debug('requests downloaded; sleeping for 1 hour')
+        sleep(3600)
