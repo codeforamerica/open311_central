@@ -1,5 +1,5 @@
 import os, sys, three, pymongo, argparse
-erom pymongo import Connection
+from pymongo import Connection
 from log_manager import LogManager
 
 if __name__ == '__main__':
