@@ -13,6 +13,10 @@ def download_requests():
         logger.info('downloading request data {0}, page {1}...'
               .format(endpoint, page_number))
         requests = city.requests(page_size=1000, page=page_number)
+        # special case for bloomington
+        if endpoint == 'bloomington':
+            end_date = datetime.utcnow().strftime('%m-%d-%Y')
+            requests = city.requests(start='01-01-2012', end=end_date)
         logger.info('inserting page {0} for {1}:'.format(page_number, endpoint))
         for request in requests:
             try:
