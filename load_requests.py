@@ -18,14 +18,27 @@ def download_requests():
             try:
                 request['endpoint'] = endpoint
                 request['loc'] = [request['long'], request['lat']]
-                request['_id'] = '{0}.{1}'.format(endpoint, request['token'])
+                if 'token' in request:
+                    # connected bits always has token so this'll always work for them
+                    request['_id'] = '{0}.{1}'.format(endpoint, request['token'])
+                else:
+                    # special case for bloomington - they don't appear to use token
+                    request['_id'] = '{0}.{1}'.format(endpoint, request['service_request_id'])
                 db.requests.save(request)
                 processed_requests = processed_requests + 1
             except KeyError as ke:
                 logger.error('could not insert: {0}'.format(ke))
                 logger.error(request)
         page_number = page_number + 1
-        requests_remain = len(requests) > 0
+
+        # total hack for bloomington - only doing this because they 
+        # will be implementing paging soon AND all of this code 
+        # will be thrown away in favor of the new multiple worker
+        # downloader
+        if 'bloomington' == endpoint:
+            requests_remain = False
+        else:
+            requests_remain = len(requests) > 0
 
 def mark_requests_with_boundaries():
     for boundary in db.boundaries.find():
@@ -64,7 +77,7 @@ def update_stats(script_stats):
     db.scriptstats.save(script_stats)
 
 if __name__ == '__main__':
-    endpoints = ['baltimore', 'boston']
+    endpoints = ['bloomington', 'baltimore', 'boston']
     lm = LogManager()
     logger = lm.logger
     connection = Connection(os.environ['MONGO_URI'])

@@ -7,6 +7,7 @@ Boston
 
 check shape file info (if desired)
 ogrinfo -al -so Neighborhoods_2010.shp > shape_file_info.txt
+ogrinfo -al -so NeighborhoodAssoications.shp
 
 in shape_file_info.txt, saw that project is:
 "NAD_1983_StatePlane_Maryland_FIPS_1900_Feet"

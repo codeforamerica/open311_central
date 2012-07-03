@@ -1,0 +1,10 @@
+
+This attribute table has     3 fields
+with    59 rows
+
+   ID KEY      TYPE DESCRIPTION
+    1 TAG      CHAR Tag Number                                      
+    2 NAME     CHAR Neighborhood Organization Name                  
+    3 LOCPURID CHAR Location_Purpose_ID from Master Address Database
+
+
