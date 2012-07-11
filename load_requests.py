@@ -2,8 +2,9 @@ import os, sys, three, pymongo, argparse
 from pymongo import Connection, GEO2D
 from pymongo.errors import OperationFailure
 from log_manager import LogManager
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import sleep
+import json
 
 def download_requests():
     requests_remain = True
@@ -12,12 +13,15 @@ def download_requests():
     while(requests_remain):
         logger.info('downloading request data {0}, page {1}...'
               .format(endpoint, page_number))
-        requests = city.requests(page_size=1000, page=page_number)
+        requests = None
         # special case for bloomington
         if endpoint == 'bloomington':
-            end_date = datetime.utcnow().strftime('%m-%d-%Y')
-            requests = city.requests(start='01-01-2012', end=end_date)
-        logger.info('inserting page {0} for {1}:'.format(page_number, endpoint))
+            end_date = (datetime.utcnow()+timedelta(days=1)).strftime('%m-%d-%Y')
+            logger.info('using {0} end_date for bloomington'.format(end_date))
+            requests = city.requests(page_size=2000, start='01-01-2012', end=end_date)
+        else:
+            requests = city.requests(page_size=1000, page=page_number)
+        #logger.info('inserting page {0} for {1}:'.format(page_number, endpoint))
         for request in requests:
             try:
                 request['endpoint'] = endpoint
@@ -28,6 +32,11 @@ def download_requests():
                 else:
                     # special case for bloomington - they don't appear to use token
                     request['_id'] = '{0}.{1}'.format(endpoint, request['service_request_id'])
+                    print 'about to process lat/long {0}/{1}'.format(request['lat'], request['long'])
+                    if request['lat'] == None or request['long'] == None:
+                        print 'bad lat/long'
+                        continue
+                    request['loc'] = [float(request['long']), float(request['lat'])]
                 db.requests.save(request)
                 processed_requests = processed_requests + 1
             except KeyError as ke:
@@ -48,7 +57,7 @@ def mark_requests_with_boundaries():
     for boundary in db.boundaries.find():
         try:
             boundary_name = boundary['properties']['Name']
-            logger.info("doing request boundary updates for {0}".format(boundary_name))
+            #logger.info("doing request boundary updates for {0}".format(boundary_name))
             coordinates = boundary['geometry']['coordinates']
         except KeyError as ke:
             logger.error("could not process shape {0}".format(boundary))
